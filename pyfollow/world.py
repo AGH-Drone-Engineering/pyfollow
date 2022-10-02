@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import NamedTuple, Tuple
 import math
 import pygame
 
@@ -40,8 +40,14 @@ class Transform(NamedTuple):
         return vector.rotate(self.rotation).add(self.translation)
 
 
+class Polygon(NamedTuple):
+    points: list[Vector] = []
+    thickness: float = -1
+    color: Tuple[int, int, int] = (255, 255, 255)
+
+
 class WorldElement:
-    def __init__(self, polygon: list[Vector], transform: Transform, parent: 'WorldElement'):
+    def __init__(self, polygon: Polygon, transform: Transform, parent: 'WorldElement'):
         self._polygon = polygon
         self._transform = transform
         self._parent = parent
@@ -53,8 +59,12 @@ class WorldElement:
         return self._parent.global_transform.add(self._transform)
 
     @property
-    def global_polygon(self) -> list[Vector]:
-        return [self.global_transform.transform(point) for point in self._polygon]
+    def global_polygon(self) -> Polygon:
+        return Polygon(
+            [self.global_transform.transform(point) for point in self._polygon.points],
+            self._polygon.thickness,
+            self._polygon.color,
+        )
 
 
 class World:
@@ -77,7 +87,7 @@ class World:
         y_max = 0
 
         for element in self._elements:
-            for point in element.global_polygon:
+            for point in element.global_polygon.points:
                 x_min = min(x_min, point.x)
                 y_min = min(y_min, point.y)
                 x_max = max(x_max, point.x)
@@ -92,13 +102,28 @@ class World:
 
         for element in self._elements:
             polygon = []
-            for point in element.global_polygon:
+            for point in element.global_polygon.points:
                 polygon.append((
                     screen_x_min + (point.x - x_min) * scale,
                     screen_y_max - (point.y - y_min) * scale,
                 ))
             if len(polygon) > 0:
-                pygame.draw.polygon(screen, (255, 255, 255), polygon, 1)
+                thickness = element.global_polygon.thickness * scale
+                if thickness < 0:
+                    thickness = 1
+                color = element.global_polygon.color
+                thickness = int(thickness)
+                if type(element).__name__ == 'Sensor':
+                    x = screen_x_min + (element.global_transform.translation.x - x_min) * scale
+                    y = screen_y_max - (element.global_transform.translation.y - y_min) * scale
+                    if screen.get_at((int(x), int(y))) == (50, 50, 50):
+                        color = (0, 255, 0)
+                        thickness = 0
+                        element._detection = True
+                    else:
+                        element._detection = False
+                pygame.draw.polygon(screen, color, polygon, thickness)
+
 
     def add_element(self, element: WorldElement):
         self._elements.append(element)

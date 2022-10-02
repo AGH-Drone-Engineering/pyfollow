@@ -9,8 +9,8 @@ class Game:
         self._fps = 30
         self._clock = pygame.time.Clock()
         self._world = World()
-        self._car = Car(Transform(Vector(0, 0), 0), self._world)
         self._board = Board(Transform(Vector(0, 0), 0), self._world)
+        self._car = Car(Transform(Vector(0, 0), 0), self._world)
 
     def run(self):
         pygame.init()

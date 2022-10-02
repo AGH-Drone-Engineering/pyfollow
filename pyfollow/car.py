@@ -1,40 +1,45 @@
 import numpy as np
-from pyfollow.world import WorldElement, Vector, Transform
+from pyfollow.world import WorldElement, Vector, Transform, Polygon
 
 
 class Sensor(WorldElement):
     def __init__(self, transform: Transform, parent: WorldElement):
-        polygon = [
+        polygon = Polygon([
             Vector(-0.5, -1).mul(0.005),
             Vector(0.5, -1).mul(0.005),
             Vector(0.5, 1).mul(0.005),
             Vector(-0.5, 1).mul(0.005),
-        ]
+        ])
         super().__init__(polygon, transform, parent)
+        self._detection = False
+
+    @property
+    def detection(self) -> bool:
+        return self._detection
 
 
 class SensorArray(WorldElement):
     def __init__(self, n, transform: Transform, parent: WorldElement):
-        super().__init__([], transform, parent)
+        super().__init__(Polygon(), transform, parent)
         width = n * 0.01
         self.sensors = [Sensor(Transform(Vector(x, 0), 0), self) for x in np.linspace(-width / 2, width / 2, n)]
 
 
 class Wheel(WorldElement):
     def __init__(self, transform: Transform, parent: WorldElement):
-        polygon = [
+        polygon = Polygon([
             Vector(-0.5, -1).mul(0.01),
             Vector(0.5, -1).mul(0.01),
             Vector(0.5, 1).mul(0.01),
             Vector(-0.5, 1).mul(0.01),
-        ]
+        ])
         super().__init__(polygon, transform, parent)
         self._velocity = 0
 
 
 class Car(WorldElement):
     def __init__(self, transform: Transform, parent: WorldElement):
-        super().__init__([], transform, parent)
+        super().__init__(Polygon(), transform, parent)
         self._wheel_distance = 0.04
         self.sensor_array = SensorArray(5, Transform(Vector(0, 0.07), 0), self)
         self.left_wheel = Wheel(Transform(Vector(-self._wheel_distance / 2, 0), 0), self)
