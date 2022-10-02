@@ -9,8 +9,8 @@ class Game:
         self._fps = 30
         self._clock = pygame.time.Clock()
         self._world = World()
-        Car(Transform(Vector(0, 0), 0.2), self._world)
-        Board(Transform(Vector(0, 0), 0), self._world)
+        self._car = Car(Transform(Vector(0, 0), 0), self._world)
+        self._board = Board(Transform(Vector(0, 0), 0), self._world)
 
     def run(self):
         pygame.init()
@@ -21,6 +21,8 @@ class Game:
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     pygame.quit()
                     exit()
+
+            self._car.update(1 / self._fps)
 
             screen.fill((0, 0, 0))
             self._world.draw(screen)
