@@ -44,12 +44,17 @@ class Car(WorldElement):
         self.sensor_array = SensorArray(5, Transform(Vector(0, 0.07), 0), self)
         self.left_wheel = Wheel(Transform(Vector(-self._wheel_distance / 2, 0), 0), self)
         self.right_wheel = Wheel(Transform(Vector(self._wheel_distance / 2, 0), 0), self)
+        self._target_left = 0
+        self._target_right = 0
 
     def set_motors(self, left, right):
-        self.left_wheel._velocity = left
-        self.right_wheel._velocity = right
+        self._target_left = left
+        self._target_right = right
 
     def update(self, dt):
+        self.left_wheel._velocity += (self._target_left - self.left_wheel._velocity) * 0.1
+        self.right_wheel._velocity += (self._target_right - self.right_wheel._velocity) * 0.1
+
         self._transform = self._transform.add(
             Transform(
                 translation=Vector(
